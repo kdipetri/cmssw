@@ -5,7 +5,8 @@ L1TVertexAnalyzer = cms.EDAnalyzer('VertexAnalyzer',
   stubInputTag = cms.InputTag("TTStubsFromPhase2TrackerDigis", "StubAccepted"),
   stubTruthInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
   clusterTruthInputTag = cms.InputTag("TTClusterAssociatorFromPixelDigis", "ClusterAccepted"),
-  l1TracksInputTag = cms.InputTag("TMTrackProducer", "TML1TracksSimpleLR"), # SFLR
+  #l1TracksInputTag = cms.InputTag("TMTrackProducer", "TML1TracksSimpleLR"), # SFLR
+  l1TracksInputTag = cms.InputTag("TMTrackProducer", "TML1TracksKF4ParamsComb"),
   l1VerticesInputTag = cms.InputTag("VertexProducer", "l1vertices"),
   l1VerticesTDRInputTag = cms.InputTag("VertexProducer", "l1vertextdr"),
 
@@ -47,12 +48,14 @@ L1TVertexAnalyzer = cms.EDAnalyzer('VertexAnalyzer',
      StubMatchStrict          = cms.bool(False)
   ),
 
-
+ 
   # === Vertex Reconstruction configuration
   VertexReconstruction=cms.PSet(
         Algorithm = cms.string("DBSCAN"),
         # Vertex distance
-        VertexDistance = cms.double(.15),
+        VertexDistance = cms.double(.35),
+        # Vertex distance
+        VertexTDistance = cms.double(-1),
         # Assumed Vertex Resolution
         VertexResolution = cms.double(.10),
         # Distance Type for agglomerative algorithm (0: MaxDistance, 1: MinDistance, 2: MeanDistance, 3: CentralDistance)
@@ -75,7 +78,7 @@ L1TVertexAnalyzer = cms.EDAnalyzer('VertexAnalyzer',
         DBSCANMinDensityTracks = cms.uint32(2),
         VxMinTrackPt   = cms.double(2.5)
     ),
-
+    
   # Debug printout
   Debug  = cms.uint32(0), #(0=none, 1=print tracks/sec, 2=show filled cells in HT array in each sector of each event, 3=print all HT cells each TP is found in, to look for duplicates, 4=print missed tracking particles by r-z filters, 5 = show debug info about duplicate track removal, 6 = show debug info about fitters)
   printResults = cms.bool(False)

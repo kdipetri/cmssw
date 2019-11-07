@@ -54,18 +54,27 @@ print "  INPUT Time COLLECTION = {0}  {1}".format(*options.timevalues.split(':')
 
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(100)
 )
+#process.maxEvents = cms.untracked.PSet(
+#    input = cms.untracked.int32(-1)
+#)
 if options.analysis:
     process.TFileService = cms.Service("TFileService", fileName = cms.string(options.histFile))
 
 process.source = cms.Source("PoolSource",
                                 fileNames = cms.untracked.vstring(
-                                '/store/mc/PhaseIIMTDTDRAutumn18DR/DYToLL_M-50_14TeV_pythia8/GEN-SIM-DIGI-RAW/PU200_pilot_103X_upgrade2023_realistic_v2_ext3-v2/80000/EF449F2B-CD40-7548-839E-BBBBBA32E969.root'
-                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/0CBB794B-A3AE-E811-B8C8-44A842CFD5BE.root'
-                                #'root://cms-xrd-global.cern.ch///store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/24D16EB5-60AF-E811-9584-0CC47AFC3C76.root'
+                                '/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/AA50ED70-3FAF-E811-AF2B-0242AC130002.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/AA1CBD5C-A4AE-E811-AC66-001E67DFF4F6.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/AA162E8D-35AF-E811-961C-0242AC130002.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/A6EB0478-3EAF-E811-98A3-0242AC130002.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/A60F69E1-65AF-E811-9627-246E96D10990.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/A46E315B-AEAE-E811-B9C2-44A842CFCA00.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/A2F1D50C-40AF-E811-9FD8-0242AC130002.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/A2DA0DBB-A3AE-E811-A87F-44A842CFD674.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/A2C7CEC5-85AF-E811-917F-001E0BED0560.root',
+                                #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/60000/A28C4275-66AF-E811-8BA3-246E96D14B94.root'
                                 ),
 #process.source = cms.Source ("PoolSource",
 #                               fileNames = cms.untracked.vstring(inputFiles),
@@ -120,10 +129,22 @@ process.VertexProducer.timingValuesNominal = timevaluesTag
 process.load('L1Trigger.VertexFinder.VertexAnalyzer_cff')
 process.L1TVertexAnalyzer.l1TracksInputTag = l1TracksTag
 
-if (options.analysis):
-    print "p1.1"
-    process.p = cms.Path(process.L1TrackletTracksWithAssociators + process.ttTrackTimeValueMapProducer30ps + process.VertexProducer + process.L1TVertexAnalyzer)
-else:
-    process.p = cms.Path(process.L1TrackletTracksWithAssociators + process.ttTrackTimeValueMapProducer30ps + process.VertexProducer)
-    print "p1.2"
+# Load calo clusters
+#process.load("L1Trigger.phase2Demonstrator.L1CaloClusterProducer_cff")
+#process.L1CaloClusterProducer.debug = cms.untracked.bool(False)
+#process.L1Clusters = cms.Path(process.L1CaloClusterProducer)
+
+# Load pflow?
+from L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff import *
+process.load("L1Trigger.Phase2L1ParticleFlow.pfTracksFromL1Tracks_cfi")
+process.load("L1Trigger.Phase2L1ParticleFlow.l1ParticleFlow_cff")
+
+
+# Schedule definition
+process.p = cms.Path(process.L1TrackletTracksWithAssociators + process.ttTrackTimeValueMapProducer30ps + process.VertexProducer + process.L1TVertexAnalyzer + process.pfTracksFromL1Tracks )
+#process.p = cms.Path(process.L1TrackletTracksWithAssociators + process.ttTrackTimeValueMapProducer30ps + process.VertexProducer + process.L1TVertexAnalyzer + process.pfTracksFromL1Tracks + process.l1ParticleFlow)
+
+#else:
+#    process.p = cms.Path(process.L1TrackletTracksWithAssociators + process.ttTrackTimeValueMapProducer30ps + process.VertexProducer)
+#    print "p1.2"
 # process.e = cms.EndPath(process.out)

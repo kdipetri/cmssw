@@ -141,7 +141,26 @@ void VertexFinder::DBSCAN()
   std::vector<unsigned int> visited;
   std::vector<unsigned int> saved;
 
+  std::vector<pair<const L1Track*,float>> trktpair;
+  trktpair.clear();
+  for (unsigned int k = 0; k < fitTracks_.size(); ++k) {
+      pair<const L1Track*,float> tmp;
+      tmp = std::make_pair(fitTracks_[k],Trackstime_[k]);
+      //std::cout <<"index: "<<k<<" track pt "<<fitTracks_[k]->pt()<<"Trackstime: "<<Trackstime_[k]<<std::endl;
+      //std::cout <<"index: "<<k<<" track pt "<<tmp.first->pt()<<"Trackstime: "<<tmp.second<<std::endl;
+      trktpair.push_back(tmp);
+  } 
+
+  sort(trktpair.begin(), trktpair.end(), SortTracksTByPt());
   sort(fitTracks_.begin(), fitTracks_.end(), SortTracksByPt());
+
+  //debug
+  /*
+  std::cout <<"after sorting:"<<std::endl;
+  for (unsigned int k = 0; k < fitTracks_.size(); ++k) {
+      std::cout <<"index: "<<k<<" track pt "<<trktpair[k].first->pt()<<"Trackstime: "<<trktpair[k].second<<std::endl;
+  }
+  */
   iterations_ = 0;
 
   for (unsigned int i = 0; i < fitTracks_.size(); ++i) {
@@ -158,11 +177,14 @@ void VertexFinder::DBSCAN()
       continue;
     for (unsigned int k = 0; k < fitTracks_.size(); ++k) {
       iterations_++;
-      if (k != i and fabs(fitTracks_[k]->z0() - fitTracks_[i]->z0()) < settings_->vx_distance()) {
+      if (k != i and fabs(fitTracks_[k]->z0() - fitTracks_[i]->z0()) < settings_->vx_distance() ) {
+       if((settings_->vt_distance()<0) || (fabs(trktpair[k].second - trktpair[i].second) < settings_->vt_distance() and settings_->vt_distance()>0)){
+        //std::cout <<"timestamps: "<<k<<" "<<trktpair[k].second<<" stamps: "<<i<<" "<<trktpair[i].second<<" diff time: "<<fabs(trktpair[k].second - trktpair[i].second)<< " vt_dis "<<settings_->vt_distance()<<std::endl;
         neighbourTrackIds.insert(k);
         if (fitTracks_[k]->pt() > settings_->vx_dbscan_pt()) {
           numDensityTracks++;
         }
+       }//end of time check
       }
     }
 
@@ -180,7 +202,10 @@ void VertexFinder::DBSCAN()
           for (unsigned int k = 0; k < fitTracks_.size(); ++k) {
             iterations_++;
             if (fabs(fitTracks_[k]->z0() - fitTracks_[id]->z0()) < settings_->vx_distance()) {
-              neighbourTrackIds2.push_back(k);
+              //time
+              if((settings_->vt_distance()<0) || (fabs(Trackstime_[trktpair[k].second] - Trackstime_[trktpair[id].second]) < settings_->vt_distance() and settings_->vt_distance()>0) ){
+                neighbourTrackIds2.push_back(k);
+              }
             }
           }
 

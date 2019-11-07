@@ -35,6 +35,8 @@ public:
   unsigned int vx_distanceType() const { return vx_distanceType_; }
   // Assumed Vertex Distance
   float vx_distance() const { return vx_distance_; }
+  // Assumed Vertex Time Distance
+  float vt_distance() const { return vt_distance_; }
   // Assumed Vertex Resolution
   float vx_resolution() const { return vx_resolution_; }
   // Minimum number of tracks to accept vertex
@@ -75,6 +77,7 @@ private:
   // Vertex Reconstruction configuration
   Algorithm vx_algo_;
   float vx_distance_;
+  float vt_distance_;
   float vx_resolution_;
   unsigned int vx_distanceType_;
   unsigned int vx_minTracks_;

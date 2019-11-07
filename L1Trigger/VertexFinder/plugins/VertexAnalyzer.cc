@@ -35,6 +35,7 @@
 #include <TH2F.h>
 #include <TPad.h>
 #include <TProfile.h>
+#include <TTree.h>
 
 #include <map>
 #include <string>
@@ -79,7 +80,9 @@ private:
 
   edm::Service<TFileService> fs_;
   // Histograms for Vertex Reconstruction
-
+  TTree *tree_;
+  uint32_t run_, lumi_, numVertices_, PVnumTrueTracks_, PVnumTracks_; uint64_t event_;
+  
   TH1F* hisNoRecoVertices_;
   TH1F* hisNoPileUpVertices_;
   TH1F* hisRecoVertexZ0Resolution_;
@@ -216,6 +219,13 @@ VertexAnalyzer::VertexAnalyzer(const edm::ParameterSet& iConfig) :
   printResults_(iConfig.getParameter<bool>("printResults")),
   settings_(iConfig)
 {
+
+  tree_ = fs_->make<TTree>("tree","tree");
+  tree_->Branch("run",  &run_,  "run/i");
+  tree_->Branch("lumi", &lumi_, "lumi/i");
+  tree_->Branch("event", &event_, "event/l");
+  tree_->Branch("numVertices",  &numVertices_,  "numVertices/i");
+
   // Configure TH1 for plotting
   TH1::SetDefaultSumw2(true);
 
@@ -424,6 +434,11 @@ VertexAnalyzer::VertexAnalyzer(const edm::ParameterSet& iConfig) :
 void VertexAnalyzer::beginJob(){};
 void VertexAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+
+  run_  = iEvent.id().run();
+  lumi_ = iEvent.id().luminosityBlock();
+  event_ = iEvent.id().event();
+
   edm::Handle<TTStubAssMap> mcTruthTTStubHandle;
   edm::Handle<TTClusterAssMap> mcTruthTTClusterHandle;
   iEvent.getByToken(stubTruthInputTag, mcTruthTTStubHandle);
@@ -615,7 +630,7 @@ void VertexAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   hisNoRecoVertices_->Fill(numVertices);
   hisNoPileUpVertices_->Fill(inputData.getRecoPileUpVertices().size());
   hisNoRecoVsNoTruePileUpVertices_->Fill(numVertices, inputData.getRecoPileUpVertices().size());
-
+  numVertices_ = numVertices;
   if (TruePrimaryVertex.numTracks() > 0)
     hisPrimaryVertexTrueZ0_->Fill(TruePrimaryVertex.z0());
 
@@ -623,6 +638,8 @@ void VertexAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   float pTres = fabs(TruePrimaryVertex.pT() - RecoPrimaryVertex->pT());
   hisRecoVertexZ0Resolution_->Fill(fabs(z0res));
 
+  PVnumTracks_ = -1;
+  PVnumTrueTracks_ = -1;
   // Vertex has been found
   if (fabs(z0res) < settings_.vx_resolution()) {
     float genMet[4] = { 50, 100, 200, 300 };
@@ -705,6 +722,8 @@ void VertexAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     hisTrueTracksRateInPV_->Fill(trueRate);
     float fakeRate = float(RecoPrimaryVertex->numTracks() - RecoPrimaryVertex->numTrueTracks()) / float(RecoPrimaryVertex->numTracks());
     hisFakeTracksRateInPV_->Fill(fakeRate);
+    PVnumTrueTracks_ = RecoPrimaryVertex->numTrueTracks();
+    PVnumTracks_ = RecoPrimaryVertex->numTracks();
     hisRecoPrimaryVertexResolutionVsTrueZ0_->Fill(TruePrimaryVertex.z0(), fabs(z0res));
 
     for (unsigned int i = 0; i < 4; ++i) {
@@ -968,6 +987,7 @@ void VertexAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
         std::cout << "     - z0 = " << trackPtr->z0() << "; pt = " << trackPtr->pt() << ", eta = " << trackPtr->eta() << ", phi = " << trackPtr->phi0() << std::endl;
     }
   }
+  tree_->Fill();
 }
 
 void VertexAnalyzer::endJob()

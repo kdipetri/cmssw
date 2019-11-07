@@ -18,6 +18,7 @@ using namespace std;
 
 VertexProducer::VertexProducer(const edm::ParameterSet& iConfig) :
   l1TracksToken_(consumes<TTTrackCollectionView>(iConfig.getParameter<edm::InputTag>("l1TracksInputTag"))),
+  timingValuesToken_( consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("timingValuesNominal"))),
   settings_(AlgoSettings(iConfig))
 {
   // Get configuration parameters
@@ -65,24 +66,47 @@ void VertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<TTTrackCollectionView> l1TracksHandle;
   iEvent.getByToken(l1TracksToken_, l1TracksHandle);
 
+  edm::Handle<edm::ValueMap<float> > timingValues;
+  iEvent.getByToken(timingValuesToken_,timingValues);
+
   std::vector<L1Track> l1Tracks;
   l1Tracks.reserve(l1TracksHandle->size());
 
-  for (const auto& track : l1TracksHandle->ptrs())
+  std::vector<float> l1Trks_time;
+  l1Trks_time.reserve(l1TracksHandle->size());
+
+  for (const auto& track : l1TracksHandle->ptrs()){
     l1Tracks.push_back(L1Track(track));
+    //time
+    float trkTime = -999.;
+    //std::cout <<"track index: "<<l1Tracks.size()<<std::endl;
+    if(!track.isNull()){
+      trkTime = (*timingValues)[track];
+      //std::cout <<"trkTime: "<<trkTime<<std::endl;
+    }
+    l1Trks_time.push_back(trkTime);
+    
+  }
 
   std::vector<const L1Track*> l1TrackPtrs;
   l1TrackPtrs.reserve(l1Tracks.size());
+  std::vector<float> l1Tracks_time;
+  l1Tracks_time.reserve(l1Tracks.size());
+
+  int index = 0;
   for (const auto& track : l1Tracks) {
     if (track.pt() > settings_.vx_TrackMinPt()) {
-      if (track.pt() < 50 or track.getNumStubs() > 5)
+      if (track.pt() < 50 or track.getNumStubs() > 5){
         l1TrackPtrs.push_back(&track);
+        l1Tracks_time.push_back(l1Trks_time.at(index));
+      }
     }
+    index++;
   }
 
   // FIXME: Check with Davide if the tracks should be filtered using the following cuts
   //   fittedTracks[i].second.accepted() and fittedTracks[i].second.chi2dof()< settings_->chi2OverNdfCut()
-  VertexFinder vf(l1TrackPtrs, settings_);
+  VertexFinder vf(l1TrackPtrs, l1Tracks_time, settings_);
 
   switch (settings_.vx_algo()) {
     case Algorithm::GapClustering:

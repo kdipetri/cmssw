@@ -3,6 +3,7 @@
 
 
 #include <vector>
+#include <utility>
 
 #include "DataFormats/Common/interface/Ptr.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
@@ -21,9 +22,10 @@ class VertexFinder {
 
 public:
   // Copy fitted tracks collection into class
-  VertexFinder(FitTrackCollection fitTracks, const AlgoSettings& settings)
+  VertexFinder(FitTrackCollection fitTracks, std::vector<float> Trackstime, const AlgoSettings& settings)
   {
     fitTracks_ = fitTracks;
+    Trackstime_ = Trackstime;
     settings_ = &settings;
   }
   ~VertexFinder() {}
@@ -34,6 +36,10 @@ public:
 
   struct SortTracksByPt {
     inline bool operator()(const L1Track* track0, const L1Track* track1) { return (fabs(track0->pt()) > fabs(track1->pt())); }
+  };
+
+  struct SortTracksTByPt {
+    inline bool operator()(std::pair<const L1Track*,float> trackt0, std::pair<const L1Track*,float> trackt1) { return (fabs(trackt0.first->pt()) > fabs(trackt1.first->pt())); }
   };
 
   struct SortVertexByZ0 {
@@ -104,6 +110,7 @@ private:
   std::vector<RecoVertex> vertices_;
   unsigned int numMatchedVertices_;
   FitTrackCollection fitTracks_;
+  std::vector<float> Trackstime_;
   unsigned int pv_index_;
   unsigned int iterations_;
 

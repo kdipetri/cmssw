@@ -3,14 +3,17 @@ import FWCore.ParameterSet.Config as cms
 VertexProducer = cms.EDProducer('VertexProducer',
 
   l1TracksInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"), 
+  timingValuesNominal = cms.InputTag("ttTrackTimeValueMapProducer30ps","TTTracksFromTrackletL1ConfigurableFlatResolutionModel"),
   #l1TracksInputTag = cms.InputTag("TMTrackProducer", "TML1TracksSimpleLR"), # SFLR
 
   # === Vertex Reconstruction configuration
   VertexReconstruction=cms.PSet(
         # Vertex Reconstruction Algorithm
         Algorithm = cms.string("DBSCAN"),
-        # Vertex distance
-        VertexDistance = cms.double(.15),
+        # Vertex distance default 0.15
+        VertexDistance = cms.double(0.35), 
+        # Vertex time distance
+        VertexTDistance = cms.double(-1), 
         # Assumed Vertex Resolution
         VertexResolution = cms.double(.10),
         # Distance Type for agglomerative algorithm (0: MaxDistance, 1: MinDistance, 2: MeanDistance, 3: CentralDistance)

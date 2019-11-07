@@ -11,6 +11,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+#include "DataFormats/Common/interface/ValueMap.h"
 
 #include "L1Trigger/VertexFinder/interface/AlgoSettings.h"
 
@@ -34,6 +35,7 @@ private:
 
 private:
   const edm::EDGetTokenT<TTTrackCollectionView> l1TracksToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float> > timingValuesToken_;
 
   l1tVertexFinder::AlgoSettings settings_;
 };

@@ -13,6 +13,7 @@ namespace l1tVertexFinder {
 AlgoSettings::AlgoSettings(const edm::ParameterSet& iConfig) :
   vertex_(iConfig.getParameter<edm::ParameterSet>("VertexReconstruction")),
   vx_distance_(vertex_.getParameter<double>("VertexDistance")),
+  vt_distance_(vertex_.getParameter<double>("VertexTDistance")),
   vx_resolution_(vertex_.getParameter<double>("VertexResolution")),
   vx_distanceType_(vertex_.getParameter<unsigned int>("DistanceType")),
   vx_minTracks_(vertex_.getParameter<unsigned int>("MinTracks")),
